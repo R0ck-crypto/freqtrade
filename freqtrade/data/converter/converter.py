@@ -11,17 +11,16 @@ from pandas import DataFrame, to_datetime
 from freqtrade.constants import DEFAULT_DATAFRAME_COLUMNS, Config
 from freqtrade.enums import CandleType, TradingMode
 
-
 logger = logging.getLogger(__name__)
 
 
 def ohlcv_to_dataframe(
-    ohlcv: list,
-    timeframe: str,
-    pair: str,
-    *,
-    fill_missing: bool = True,
-    drop_incomplete: bool = True,
+        ohlcv: list,
+        timeframe: str,
+        pair: str,
+        *,
+        fill_missing: bool = True,
+        drop_incomplete: bool = True,
 ) -> DataFrame:
     """
     Converts a list with candle (OHLCV) data (in format returned by ccxt.fetch_ohlcv)
@@ -49,7 +48,11 @@ def ohlcv_to_dataframe(
             "high": "float",
             "low": "float",
             "close": "float",
-            "volume": "float",
+            'volume': 'float',
+            'amount': 'float',
+            'num_trades': 'int',
+            'taker_buy_volume': 'float',
+            'taker_buy_amount': 'float'
         }
     )
     return clean_ohlcv_dataframe(
@@ -58,7 +61,7 @@ def ohlcv_to_dataframe(
 
 
 def clean_ohlcv_dataframe(
-    data: DataFrame, timeframe: str, pair: str, *, fill_missing: bool, drop_incomplete: bool
+        data: DataFrame, timeframe: str, pair: str, *, fill_missing: bool, drop_incomplete: bool
 ) -> DataFrame:
     """
     Cleanse a OHLCV dataframe by
@@ -81,6 +84,10 @@ def clean_ohlcv_dataframe(
             "low": "min",
             "close": "last",
             "volume": "max",
+            'amount': 'max',
+            "num_trades": 'max',
+            "taker_buy_volume": 'max',
+            "taker_buy_amount": 'max'
         }
     )
     # eliminate partial candle
@@ -102,7 +109,7 @@ def ohlcv_fill_up_missing_data(dataframe: DataFrame, timeframe: str, pair: str) 
     """
     from freqtrade.exchange import timeframe_to_resample_freq
 
-    ohlcv_dict = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
+    ohlcv_dict = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum",'amount': 'sum',"num_trades": 'sum',"taker_buy_volume": 'sum',"taker_buy_amount": 'sum'}
     resample_interval = timeframe_to_resample_freq(timeframe)
     # Resample to create "NAN" values
     df = dataframe.resample(resample_interval, on="date").agg(ohlcv_dict)
@@ -135,7 +142,7 @@ def ohlcv_fill_up_missing_data(dataframe: DataFrame, timeframe: str, pair: str) 
 
 
 def trim_dataframe(
-    df: DataFrame, timerange, *, df_date_col: str = "date", startup_candles: int = 0
+        df: DataFrame, timerange, *, df_date_col: str = "date", startup_candles: int = 0
 ) -> DataFrame:
     """
     Trim dataframe based on given timerange
@@ -157,7 +164,7 @@ def trim_dataframe(
 
 
 def trim_dataframes(
-    preprocessed: dict[str, DataFrame], timerange, startup_candles: int
+        preprocessed: dict[str, DataFrame], timerange, startup_candles: int
 ) -> dict[str, DataFrame]:
     """
     Trim startup period from analyzed dataframes
@@ -214,10 +221,10 @@ def order_book_to_dataframe(bids: list, asks: list) -> DataFrame:
 
 
 def convert_ohlcv_format(
-    config: Config,
-    convert_from: str,
-    convert_to: str,
-    erase: bool,
+        config: Config,
+        convert_from: str,
+        convert_to: str,
+        erase: bool,
 ):
     """
     Convert OHLCV from one format to another
@@ -284,7 +291,7 @@ def reduce_dataframe_footprint(df: DataFrame) -> DataFrame:
     :return: Dataframe converted to float/int 32s
     """
 
-    logger.debug(f"Memory usage of dataframe is {df.memory_usage().sum() / 1024**2:.2f} MB")
+    logger.debug(f"Memory usage of dataframe is {df.memory_usage().sum() / 1024 ** 2:.2f} MB")
 
     df_dtypes = df.dtypes
     for column, dtype in df_dtypes.items():
@@ -296,6 +303,6 @@ def reduce_dataframe_footprint(df: DataFrame) -> DataFrame:
             df_dtypes[column] = np.int32
     df = df.astype(df_dtypes)
 
-    logger.debug(f"Memory usage after optimization is: {df.memory_usage().sum() / 1024**2:.2f} MB")
+    logger.debug(f"Memory usage after optimization is: {df.memory_usage().sum() / 1024 ** 2:.2f} MB")
 
     return df

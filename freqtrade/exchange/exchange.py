@@ -2626,7 +2626,8 @@ class Exchange:
         # Funding rate
         data = await self._api_async.fetch_funding_rate_history(pair, since=since_ms, limit=limit)
         # Convert funding rate to candle pattern
-        data = [[x["timestamp"], x["fundingRate"], 0, 0, 0, 0] for x in data]
+        # data = [[x["timestamp"], x["fundingRate"], 0, 0, 0, 0] for x in data]
+        data = [[x['timestamp'], x['fundingRate'], 0, 0, 0, 0, 0, 0, 0, 0] for x in data]
         return data
 
     # fetch Trade data stuff
