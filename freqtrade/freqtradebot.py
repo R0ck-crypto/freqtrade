@@ -2274,7 +2274,8 @@ class FreqtradeBot(LoggingMixin):
                     trade, order.order_type, fill=True, sub_trade=trade.is_open, order=order
                 )
             if not trade.is_open:
-                self.handle_protections(trade.pair, trade.trade_direction)
+                pass
+                # self.handle_protections(trade.pair, trade.trade_direction)
         elif send_msg and order.order_id not in trade.open_orders_ids and not stoploss_order:
             sub_trade = not isclose(
                 order.safe_amount_after_fee, trade.amount, abs_tol=constants.MATH_CLOSE_PREC
